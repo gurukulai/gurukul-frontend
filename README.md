@@ -1,73 +1,323 @@
-# Welcome to your Lovable project
 
-## Project info
+# Gurukul AI - AI for Bharat
 
-**URL**: https://lovable.dev/projects/8facce76-acf2-4988-80f7-d8ee3ed0cbe4
+A comprehensive AI-powered platform providing personalized assistance for mental health, nutrition, career guidance, and general conversations. Built with Next.js, TypeScript, and Tailwind CSS.
 
-## How can I edit this code?
+## 🌟 Features
 
-There are several ways of editing your application.
+### AI Agents
+- **🧠 AI Therapist**: Mental health support with CBT techniques
+- **🥗 AI Dietician**: Personalized nutrition and meal planning
+- **💼 Career Guide**: Professional development and job guidance  
+- **👩 Priya**: General purpose AI companion
 
-**Use Lovable**
+### Core Features
+- **Progressive Web App (PWA)** with offline capabilities
+- **Google Authentication** for secure login
+- **Real-time Chat** with typing indicators
+- **Mobile-first** responsive design
+- **Chat History** persistence
+- **Agent-specific** UI themes and colors
+- **Message Polling** for backend responses
+- **Cultural Context** awareness for Indian users
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8facce76-acf2-4988-80f7-d8ee3ed0cbe4) and start prompting.
+## 🚀 Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
+- **UI Components**: Shadcn/ui, Radix UI
+- **Authentication**: Google OAuth (to be implemented)
+- **State Management**: React Context API
+- **Styling**: Tailwind CSS with custom themes
+- **Icons**: Lucide React
+- **PWA**: next-pwa
 
-**Use your preferred IDE**
+## 📱 Installation & Setup
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Quick Start
+```bash
+# Clone the repository
+git clone <repository-url>
+cd gurukul-ai-sadhana
 
-Follow these steps:
+# Install dependencies
+npm install
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Run development server
 npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
 ```
 
-**Edit a file directly in GitHub**
+### PWA Setup
+The app is configured as a Progressive Web App with:
+- Service worker for offline functionality
+- App manifest for installability
+- Optimized caching strategies
+- Push notification ready
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🔧 Backend API Requirements
 
-**Use GitHub Codespaces**
+The frontend expects the following API endpoints:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Authentication APIs
+```typescript
+// POST /api/auth/login
+// Google OAuth login
+{
+  "token": "google_oauth_token"
+}
 
-## What technologies are used for this project?
+// Response
+{
+  "success": true,
+  "user": {
+    "id": "string",
+    "email": "string", 
+    "name": "string",
+    "picture": "string"
+  },
+  "token": "jwt_token"
+}
 
-This project is built with:
+// GET /api/auth/me
+// Get current user
+// Headers: Authorization: Bearer {jwt_token}
+// Response: User object
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+// POST /api/auth/logout
+// Logout user
+// Headers: Authorization: Bearer {jwt_token}
+```
 
-## How can I deploy this project?
+### Chat APIs
+```typescript
+// POST /api/chat
+// Create new chat or send message
+{
+  "agentId": "therapist" | "dietician" | "career" | "priya",
+  "content": "string", // message content
+  "chatId": "string" // optional, for existing chat
+}
 
-Simply open [Lovable](https://lovable.dev/projects/8facce76-acf2-4988-80f7-d8ee3ed0cbe4) and click on Share -> Publish.
+// Response
+{
+  "success": true,
+  "chatId": "string",
+  "messages": [
+    {
+      "id": "string",
+      "content": "string",
+      "role": "assistant",
+      "timestamp": "ISO string",
+      "metadata": {
+        "confidence": 0.95,
+        "messageIndex": 1,
+        "totalMessages": 2
+      }
+    }
+  ]
+}
 
-## Can I connect a custom domain to my Lovable project?
+// GET /api/chat/{chatId}/messages
+// Get messages for a chat
+// Headers: Authorization: Bearer {jwt_token}
+// Response: Array of messages
 
-Yes, you can!
+// GET /api/chat/history
+// Get user's chat history
+// Headers: Authorization: Bearer {jwt_token}
+// Response: Array of chat summaries
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Message Polling
+The frontend polls for new messages every 2 seconds using:
+```typescript
+// GET /api/chat/{chatId}/poll
+// Headers: Authorization: Bearer {jwt_token}
+// Query: ?lastMessageId=string&timeout=30000
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+// Response
+{
+  "success": true,
+  "hasNewMessages": boolean,
+  "messages": Message[],
+  "isTyping": boolean
+}
+```
+
+## 🎨 Design System
+
+### Color Themes (Agent-specific)
+- **Therapist**: Blue (#0ea5e9)
+- **Dietician**: Green (#22c55e)  
+- **Career**: Orange (#f59e0b)
+- **Priya**: Pink (#ec4899)
+
+### Typography
+- **Headings**: Poppins (Google Fonts)
+- **Body**: Inter (Google Fonts)
+
+### Responsive Breakpoints
+- Mobile: < 768px
+- Tablet: 768px - 1024px
+- Desktop: > 1024px
+
+## 🔐 Environment Variables
+
+```env
+# Google OAuth (Required)
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# API Configuration
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_nextauth_secret
+
+# Database (if using)
+DATABASE_URL=your_database_url
+
+# Optional: Analytics
+NEXT_PUBLIC_GA_ID=your_google_analytics_id
+```
+
+## 📊 Backend Requirements
+
+### Database Schema
+```sql
+-- Users table
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email VARCHAR UNIQUE NOT NULL,
+  name VARCHAR NOT NULL,
+  picture VARCHAR,
+  created_at TIMESTAMP DEFAULT NOW(),
+  last_active TIMESTAMP DEFAULT NOW()
+);
+
+-- Chats table  
+CREATE TABLE chats (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id),
+  agent_id VARCHAR NOT NULL,
+  title VARCHAR,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  message_count INTEGER DEFAULT 0
+);
+
+-- Messages table
+CREATE TABLE messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  chat_id UUID REFERENCES chats(id),
+  user_id UUID REFERENCES users(id),
+  agent_id VARCHAR NOT NULL,
+  content TEXT NOT NULL,
+  role VARCHAR NOT NULL CHECK (role IN ('user', 'assistant')),
+  timestamp TIMESTAMP DEFAULT NOW(),
+  metadata JSONB
+);
+```
+
+### AI Model Requirements
+- **Response Time**: 3-5 seconds maximum
+- **Multiple Messages**: Support returning 1-5 messages per request
+- **Context Awareness**: Maintain conversation context
+- **Cultural Sensitivity**: Understand Indian context and values
+- **Safety**: Content filtering and appropriate responses
+
+### Recommended Tech Stack (Backend)
+- **API**: FastAPI or Express.js
+- **Database**: PostgreSQL with pgvector for embeddings
+- **AI**: OpenAI GPT-4 or Anthropic Claude
+- **Authentication**: JWT with Google OAuth
+- **Deployment**: Docker + Cloud (AWS/GCP/Azure)
+
+## 🚀 Deployment
+
+### Frontend (Vercel)
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+```
+
+### Environment Setup
+1. Set up Google OAuth credentials
+2. Configure database connection
+3. Set up AI API keys (OpenAI, etc.)
+4. Configure environment variables
+
+## 📱 PWA Installation
+
+Users can install the app on their devices:
+1. Visit the website
+2. Click "Add to Home Screen" (mobile)
+3. Or "Install App" (desktop)
+
+## 🔒 Security Features
+
+- **HTTPS Only**: All communications encrypted
+- **JWT Authentication**: Secure token-based auth
+- **Input Validation**: All user inputs sanitized
+- **Rate Limiting**: Prevent abuse
+- **Data Privacy**: GDPR compliant
+
+## 🎯 Performance Optimizations
+
+- **Code Splitting**: Automatic route-based splitting
+- **Image Optimization**: Next.js Image component
+- **Caching**: Service worker + API caching
+- **Bundle Analysis**: `npm run analyze`
+
+## 🧪 Testing
+
+```bash
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run E2E tests
+npm run test:e2e
+```
+
+## 📈 Analytics & Monitoring
+
+- **Performance**: Core Web Vitals tracking
+- **Usage**: User interaction analytics
+- **Errors**: Error boundary with reporting
+- **Health**: API endpoint monitoring
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+- **Documentation**: [docs.gurukul.ai](https://docs.gurukul.ai)
+- **Discord**: [Join our community](https://discord.gg/gurukul)
+- **Email**: support@gurukul.ai
+
+---
+
+**Made with ❤️ for Bharat** 🇮🇳
