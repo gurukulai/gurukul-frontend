@@ -42,7 +42,7 @@ export const Header = () => {
     { name: 'Mind Guru', href: '/therapist' },
     { name: 'Food Guru', href: '/dietician' },
     { name: 'Success Guru', href: '/career' },
-    { name: 'Priya Didi', href: '/priya' },
+    { name: 'Priya', href: '/priya' },
   ];
 
   return (

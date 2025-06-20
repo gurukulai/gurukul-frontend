@@ -46,7 +46,7 @@ const PriyaPage = () => {
     {
       icon: Book,
       title: "Learning Support",
-      description: "Help with studies, explanations, and educational guidance - just like your favorite didi"
+      description: "Help with studies, explanations, and educational guidance - just like your favorite"
     },
     {
       icon: Sparkles,
@@ -82,12 +82,12 @@ const PriyaPage = () => {
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gray-900">
-              Hi, I'm Priya Didi!
+              Hi, I'm Priya!
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Your friendly AI saathi! I'm here to chat, help with your daily tasks, 
-              answer questions, and be your supportive digital elder sister - just like that cool didi next door!
+              answer questions, and be your supportive digital elder sister - just like that cool next door!
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -97,7 +97,7 @@ const PriyaPage = () => {
                 disabled={isLoading}
                 className="bg-priya-500 hover:bg-priya-600 text-white px-8 py-4 text-lg"
               >
-                {isLoading ? 'Starting...' : 'Start Chatting with Priya Didi'}
+                {isLoading ? 'Starting...' : 'Start Chatting with Priya'}
                 <Heart className="ml-2 h-5 w-5" />
               </Button>
               
@@ -118,7 +118,7 @@ const PriyaPage = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">What Makes Me Special</h2>
-            <p className="text-xl text-gray-600">Your versatile AI didi for all occasions</p>
+            <p className="text-xl text-gray-600">Your versatile AI for all occasions</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -179,7 +179,7 @@ const PriyaPage = () => {
             disabled={isLoading}
             className="px-8 py-4 text-lg"
           >
-            {isLoading ? 'Starting...' : 'Chat with Priya Didi'}
+            {isLoading ? 'Starting...' : 'Chat with Priya'}
             <Heart className="ml-2 h-5 w-5" />
           </Button>
         </div>

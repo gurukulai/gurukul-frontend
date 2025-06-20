@@ -30,7 +30,7 @@ export const Footer = () => {
               <li><Link to="/therapist" className="hover:text-primary transition-colors">Mental Health Guru</Link></li>
               <li><Link to="/dietician" className="hover:text-primary transition-colors">Nutrition Guru</Link></li>
               <li><Link to="/career" className="hover:text-primary transition-colors">Career Guru</Link></li>
-              <li><Link to="/priya" className="hover:text-primary transition-colors">Priya Didi</Link></li>
+              <li><Link to="/priya" className="hover:text-primary transition-colors">Priya</Link></li>
             </ul>
           </div>
 

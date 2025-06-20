@@ -47,10 +47,10 @@ export const AI_AGENTS = {
   },
   PRIYA: {
     id: 'priya',
-    name: 'Priya Didi',
+    name: 'Priya',
     shortName: 'Priya',
     description: 'Your friendly AI saathi',
-    longDescription: 'Chat with Priya Didi, your versatile AI friend who can help with daily tasks, answer questions, and provide companionship - just like your favorite elder sister!',
+    longDescription: 'Chat with Priya, your versatile AI friend who can help with daily tasks, answer questions, and provide companionship - just like your favorite elder sister!',
     icon: '👩',
     color: 'priya',
     primaryColor: '#ec4899',
