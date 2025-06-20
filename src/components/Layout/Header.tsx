@@ -16,9 +16,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Menu, X, LogOut, User, MessageCircle } from 'lucide-react';
 
 export const Header = () => {
-  const { user, logout } = useAuth();
+  const { user, login, logout } = useAuth();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleLogin = async () => {
+    try {
+      await login();
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -86,11 +94,11 @@ export const Header = () => {
                     </div>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer">
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/profile')}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer">
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/my-chats')}>
                     <MessageCircle className="mr-2 h-4 w-4" />
                     <span>My Chats</span>
                   </DropdownMenuItem>
@@ -102,7 +110,10 @@ export const Header = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button className="bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90">
+              <Button 
+                onClick={handleLogin}
+                className="bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90"
+              >
                 Sign In
               </Button>
             )}

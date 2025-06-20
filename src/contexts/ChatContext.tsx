@@ -1,4 +1,3 @@
-
 'use client';
 
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
@@ -32,18 +31,22 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       therapist: [
         "I understand you're going through a challenging time. Let's explore this together.",
         "Your feelings are completely valid. Can you tell me more about what's been on your mind?",
+        "It's important to acknowledge these emotions. How long have you been feeling this way?",
       ],
       dietician: [
         "Based on what you've shared, I'd recommend focusing on balanced nutrition.",
         "Let's create a meal plan that works with your lifestyle and preferences.",
+        "Nutrition is very personal. What are your current eating habits like?",
       ],
       career: [
         "That's an excellent career goal! Let's break down the steps to get you there.",
         "Your skills are valuable. Here's how we can leverage them for your next opportunity.",
+        "Career growth requires strategic planning. What's your timeline for these changes?",
       ],
       priya: [
         "I'm here to help! What would you like to know or discuss today?",
         "That's interesting! Tell me more about what you're thinking.",
+        "I love chatting about different topics. What's on your mind?",
       ],
     };
 
@@ -90,41 +93,41 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
 
       setCurrentChat(prev => prev ? {
         ...prev,
-        messages: [...prev.messages, userMessage],
-        isLoading: true
+        messages: [...prev.messages, userMessage]
       } : null);
 
-      setIsTyping(true);
-
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, CHAT_CONFIG.TYPING_DELAY));
-
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/chat', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ content, agentId, chatId: finalChatId })
-      // });
-      // const data = await response.json();
-
-      // Mock response for demo
-      const mockMessages = generateMockResponse(agentId, content);
+      // Random delay for typing animation (1-3 seconds)
+      const typingDelay = Math.random() * 2000 + 1000; // 1000-3000ms
       
-      // Add messages with delay for realistic effect
-      for (let i = 0; i < mockMessages.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, CHAT_CONFIG.MESSAGE_DISPLAY_DELAY));
+      setTimeout(() => {
+        setIsTyping(true);
+      }, typingDelay);
+
+      // Total response time (typing delay + response time)
+      const totalDelay = typingDelay + CHAT_CONFIG.TYPING_DELAY;
+      
+      setTimeout(async () => {
+        // Generate mock response
+        const mockMessages = generateMockResponse(agentId, content);
         
-        setCurrentChat(prev => prev ? {
-          ...prev,
-          messages: [...prev.messages, mockMessages[i]],
-          isLoading: i === mockMessages.length - 1 ? false : prev.isLoading
-        } : null);
-      }
+        // Add messages with delay for realistic effect
+        for (let i = 0; i < mockMessages.length; i++) {
+          if (i > 0) {
+            await new Promise(resolve => setTimeout(resolve, CHAT_CONFIG.MESSAGE_DISPLAY_DELAY));
+          }
+          
+          setCurrentChat(prev => prev ? {
+            ...prev,
+            messages: [...prev.messages, mockMessages[i]]
+          } : null);
+        }
+        
+        setIsTyping(false);
+      }, totalDelay);
 
     } catch (err) {
       setError('Failed to send message. Please try again.');
       console.error('Send message error:', err);
-    } finally {
       setIsTyping(false);
     }
   }, [user, currentChat, generateMockResponse]);
@@ -133,11 +136,6 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/messages/${chatId}`);
-      // const data = await response.json();
-
-      // Mock chat loading
       const mockChat: ChatSession = {
         chatId,
         messages: [],
@@ -157,14 +155,6 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     try {
       const newChatId = `chat-${Date.now()}-${agentId}`;
       
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/chat', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ agentId })
-      // });
-      // const data = await response.json();
-
       const newChat: ChatSession = {
         chatId: newChatId,
         messages: [],
@@ -174,13 +164,27 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       };
 
       setCurrentChat(newChat);
+      
+      // Add to chats list
+      const newChatItem: Chat = {
+        id: newChatId,
+        userId: user?.id || '',
+        agentId,
+        title: `New ${agentId} chat`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        messageCount: 0
+      };
+      
+      setChats(prev => [newChatItem, ...prev]);
+      
       return newChatId;
     } catch (err) {
       setError('Failed to create new chat');
       console.error('Create chat error:', err);
       throw err;
     }
-  }, []);
+  }, [user]);
 
   const value: ChatContextType = {
     currentChat,

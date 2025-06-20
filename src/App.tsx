@@ -14,6 +14,11 @@ import DieticianPage from "./pages/dietician/DieticianPage";
 import CareerPage from "./pages/career/CareerPage";
 import PriyaPage from "./pages/priya/PriyaPage";
 import TherapistChatPage from "./pages/therapist/chat/TherapistChatPage";
+import DieticianChatPage from "./pages/dietician/chat/DieticianChatPage";
+import CareerChatPage from "./pages/career/chat/CareerChatPage";
+import PriyaChatPage from "./pages/priya/chat/PriyaChatPage";
+import ProfilePage from "./pages/ProfilePage";
+import MyChatsPage from "./pages/MyChatsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +41,11 @@ const App = () => (
                   <Route path="/career" element={<CareerPage />} />
                   <Route path="/priya" element={<PriyaPage />} />
                   <Route path="/therapist/chat/:chatId" element={<TherapistChatPage />} />
+                  <Route path="/dietician/chat/:chatId" element={<DieticianChatPage />} />
+                  <Route path="/career/chat/:chatId" element={<CareerChatPage />} />
+                  <Route path="/priya/chat/:chatId" element={<PriyaChatPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/my-chats" element={<MyChatsPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

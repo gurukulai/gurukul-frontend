@@ -29,17 +29,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const checkAuthStatus = async () => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/auth/me');
-      // if (response.ok) {
-      //   const userData = await response.json();
-      //   setUser(userData);
-      // }
-      
-      // Mock auth check for demo
+      // Check if user is stored in localStorage
       const storedUser = localStorage.getItem('gurukul-user');
       if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -52,23 +46,56 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setIsLoading(true);
       
-      // TODO: Implement Google OAuth
-      // const response = await signInWithPopup(auth, googleProvider);
-      // const userData = {
-      //   id: response.user.uid,
-      //   email: response.user.email!,
-      //   name: response.user.displayName!,
-      //   picture: response.user.photoURL,
-      //   createdAt: new Date(),
-      //   lastActive: new Date()
-      // };
+      // Check if Google API is loaded
+      if (typeof window.google === 'undefined') {
+        // Load Google Identity Services
+        await loadGoogleScript();
+      }
       
-      // Mock login for demo
+      // Initialize Google Sign-In
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id',
+        callback: handleGoogleResponse,
+      });
+
+      // Prompt the user to sign in
+      window.google.accounts.id.prompt();
+      
+    } catch (error) {
+      console.error('Login failed:', error);
+      // Fallback to demo login if Google login fails
+      await demoLogin();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadGoogleScript = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (document.getElementById('google-script')) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.id = 'google-script';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Google script'));
+      document.head.appendChild(script);
+    });
+  };
+
+  const handleGoogleResponse = async (response: any) => {
+    try {
+      // Decode the JWT token to get user info
+      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      
       const userData: User = {
-        id: 'demo-user-' + Date.now(),
-        email: 'demo@gurukul.ai',
-        name: 'Demo User',
-        picture: 'https://via.placeholder.com/40',
+        id: payload.sub,
+        email: payload.email,
+        name: payload.name,
+        picture: payload.picture,
         createdAt: new Date(),
         lastActive: new Date()
       };
@@ -77,19 +104,35 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       localStorage.setItem('gurukul-user', JSON.stringify(userData));
       
     } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+      console.error('Google login failed:', error);
+      // Fallback to demo login
+      await demoLogin();
     }
+  };
+
+  const demoLogin = async () => {
+    // Demo login for development
+    const userData: User = {
+      id: 'demo-user-' + Date.now(),
+      email: 'demo@gurukul.ai',
+      name: 'Demo User',
+      picture: 'https://via.placeholder.com/40',
+      createdAt: new Date(),
+      lastActive: new Date()
+    };
+    
+    setUser(userData);
+    localStorage.setItem('gurukul-user', JSON.stringify(userData));
   };
 
   const logout = async () => {
     try {
       setIsLoading(true);
       
-      // TODO: Implement actual logout
-      // await signOut(auth);
+      // Sign out from Google if available
+      if (window.google && window.google.accounts) {
+        window.google.accounts.id.disableAutoSelect();
+      }
       
       setUser(null);
       localStorage.removeItem('gurukul-user');
@@ -115,3 +158,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     </AuthContext.Provider>
   );
 };
+
+// Extend window interface for Google API
+declare global {
+  interface Window {
+    google: any;
+  }
+}

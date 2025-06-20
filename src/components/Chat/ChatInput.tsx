@@ -20,19 +20,23 @@ export const ChatInput = ({
   agentColor = '#FF6B35'
 }: ChatInputProps) => {
   const [message, setMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   const handleSend = async () => {
-    if (!message.trim() || disabled || isLoading) return;
+    if (!message.trim() || disabled) return;
 
-    setIsLoading(true);
+    const messageToSend = message.trim();
+    setMessage(''); // Clear input immediately
+    setIsSending(true);
+    
     try {
-      await onSendMessage(message.trim());
-      setMessage('');
+      await onSendMessage(messageToSend);
     } catch (error) {
       console.error('Failed to send message:', error);
+      // Restore message on error
+      setMessage(messageToSend);
     } finally {
-      setIsLoading(false);
+      setIsSending(false);
     }
   };
 
@@ -52,7 +56,7 @@ export const ChatInput = ({
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={placeholder}
-            disabled={disabled || isLoading}
+            disabled={disabled}
             className="min-h-[60px] max-h-[120px] resize-none border-2 focus:border-opacity-50"
             style={{ 
               borderColor: `${agentColor}30`
@@ -62,11 +66,11 @@ export const ChatInput = ({
         
         <Button
           onClick={handleSend}
-          disabled={!message.trim() || disabled || isLoading}
+          disabled={!message.trim() || disabled}
           className="h-[60px] px-4 text-white"
           style={{ backgroundColor: agentColor }}
         >
-          {isLoading ? (
+          {isSending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Send className="h-4 w-4" />
