@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -8,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { AI_AGENTS } from '@/lib/constants';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChat } from '@/contexts/ChatContext';
-import { Briefcase, MessageCircle, TrendingUp, Users, Target, BookOpen } from 'lucide-react';
+import { Briefcase, MessageCircle, Target, TrendingUp, Users, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const CareerPage = () => {
@@ -40,34 +41,34 @@ const CareerPage = () => {
     {
       icon: Target,
       title: "Career Planning",
-      description: "Strategic career roadmaps tailored to your goals and skills"
+      description: "Strategic guidance for your professional journey and goal setting"
     },
     {
       icon: TrendingUp,
       title: "Skill Assessment",
-      description: "Identify your strengths and areas for professional development"
+      description: "Identify your strengths and areas for improvement in your career"
     },
     {
       icon: Users,
-      title: "Interview Preparation", 
-      description: "Mock interviews and tips to ace your next job interview"
+      title: "Interview Preparation",
+      description: "Practice interviews and get tips for landing your dream job"
     },
     {
-      icon: BookOpen,
+      icon: Clock,
       title: "Market Insights",
-      description: "Stay updated with industry trends and job market analysis"
+      description: "Stay updated with industry trends and job market dynamics"
     }
   ];
 
-  const services = [
-    "Resume Review",
-    "Interview Preparation",
+  const specialties = [
     "Career Transition",
+    "Interview Prep",
+    "Resume Building",
     "Skill Development",
     "Salary Negotiation",
-    "LinkedIn Optimization",
-    "Industry Analysis",
-    "Job Search Strategy"
+    "Leadership Skills",
+    "Networking Tips",
+    "Work-Life Balance"
   ];
 
   return (
@@ -81,12 +82,12 @@ const CareerPage = () => {
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gray-900">
-              AI Career Guide
+              Career Guru
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Your professional development mentor. Get personalized career guidance, 
-              skill assessments, and strategic advice to accelerate your career growth.
+              Your professional development guruji, ready to navigate your career path with 
+              personalized guidance, skill assessments, and job market insights - your success mentor!
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -116,8 +117,8 @@ const CareerPage = () => {
       <section className="py-16 bg-white/50 backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Professional Career Support</h2>
-            <p className="text-xl text-gray-600">Comprehensive career development assistance</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Professional Growth Support</h2>
+            <p className="text-xl text-gray-600">Strategic career guidance tailored for Indian professionals</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -138,24 +139,23 @@ const CareerPage = () => {
         </div>
       </section>
 
-      {/* Services Section */}
+      {/* Specialties Section - Updated with light background */}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">What I Can Help With</h2>
-              <p className="text-xl text-gray-600">Comprehensive career development services</p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">My Expertise Areas</h2>
+              <p className="text-xl text-gray-600">Comprehensive career guidance across all professional aspects</p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {services.map((service, index) => (
-                <Badge 
-                  key={index} 
-                  variant="secondary" 
-                  className="p-3 text-center justify-center bg-career-50 text-career-700 hover:bg-career-100 transition-colors"
+              {specialties.map((specialty, index) => (
+                <div 
+                  key={index}
+                  className="bg-white/70 backdrop-blur-sm border border-career-200 rounded-lg p-4 text-center hover:bg-career-50 transition-colors shadow-sm"
                 >
-                  {service}
-                </Badge>
+                  <span className="text-career-700 font-medium">{specialty}</span>
+                </div>
               ))}
             </div>
           </div>
@@ -169,7 +169,7 @@ const CareerPage = () => {
             Ready to Accelerate Your Career?
           </h2>
           <p className="text-xl mb-8 max-w-3xl mx-auto opacity-90">
-            Take the next step in your professional journey with personalized career guidance.
+            Take the next step in your professional journey with personalized career guidance and strategic planning.
           </p>
           
           <Button 
@@ -179,7 +179,7 @@ const CareerPage = () => {
             disabled={isLoading}
             className="px-8 py-4 text-lg"
           >
-            {isLoading ? 'Starting...' : 'Get Career Advice'}
+            {isLoading ? 'Starting...' : 'Get Career Guidance'}
             <MessageCircle className="ml-2 h-5 w-5" />
           </Button>
         </div>

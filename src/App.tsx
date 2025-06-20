@@ -19,6 +19,8 @@ import CareerChatPage from "./pages/career/chat/CareerChatPage";
 import PriyaChatPage from "./pages/priya/chat/PriyaChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import MyChatsPage from "./pages/MyChatsPage";
+import GuruDakshinaPage from "./pages/GuruDakshinaPage";
+import MemoryVaultPage from "./pages/MemoryVaultPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +48,8 @@ const App = () => (
                   <Route path="/priya/chat/:chatId" element={<PriyaChatPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/my-chats" element={<MyChatsPage />} />
+                  <Route path="/guru-dakshina" element={<GuruDakshinaPage />} />
+                  <Route path="/memory-vault" element={<MemoryVaultPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

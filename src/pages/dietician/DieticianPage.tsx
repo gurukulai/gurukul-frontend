@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -63,7 +64,7 @@ const DieticianPage = () => {
     "Weight Management",
     "Diabetes Care",
     "Heart Health",
-    "Indian Cuisine",
+    "Desi Cuisine",
     "Vegetarian/Vegan",
     "Sports Nutrition",
     "Pregnancy Nutrition",
@@ -81,12 +82,12 @@ const DieticianPage = () => {
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gray-900">
-              AI Dietician
+              Nutrition Guru
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Your personalized nutrition expert, ready to create meal plans, 
-              track your health goals, and guide you towards better eating habits.
+              Your personalized nutrition guruji, ready to create meal plans, 
+              track your health goals, and guide you towards better eating habits with desi wisdom.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -117,7 +118,7 @@ const DieticianPage = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Personalized Nutrition Support</h2>
-            <p className="text-xl text-gray-600">Science-backed nutrition guidance tailored for you</p>
+            <p className="text-xl text-gray-600">Science-backed nutrition guidance tailored for Indian lifestyle</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -138,7 +139,7 @@ const DieticianPage = () => {
         </div>
       </section>
 
-      {/* Specialties Section */}
+      {/* Specialties Section - Updated with light background */}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
@@ -149,13 +150,12 @@ const DieticianPage = () => {
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {specialties.map((specialty, index) => (
-                <Badge 
-                  key={index} 
-                  variant="secondary" 
-                  className="p-3 text-center justify-center bg-dietician-50 text-dietician-700 hover:bg-dietician-100 transition-colors"
+                <div 
+                  key={index}
+                  className="bg-white/70 backdrop-blur-sm border border-dietician-200 rounded-lg p-4 text-center hover:bg-dietician-50 transition-colors shadow-sm"
                 >
-                  {specialty}
-                </Badge>
+                  <span className="text-dietician-700 font-medium">{specialty}</span>
+                </div>
               ))}
             </div>
           </div>
@@ -169,7 +169,7 @@ const DieticianPage = () => {
             Ready to Transform Your Health?
           </h2>
           <p className="text-xl mb-8 max-w-3xl mx-auto opacity-90">
-            Start your journey to better nutrition and healthier living with personalized guidance.
+            Start your journey to better nutrition and healthier living with personalized desi guidance.
           </p>
           
           <Button 

@@ -16,18 +16,21 @@ export const Footer = () => {
               <span className="font-bold text-xl">Gurukul</span>
             </div>
             <p className="text-gray-400 text-sm">
-              Empowering India with AI-powered personal assistance for mental health, nutrition, career guidance, and more.
+              Empowering India with AI-powered personal guruji assistance for mental health, nutrition, career guidance, and more.
+            </p>
+            <p className="text-gray-500 text-xs italic">
+              AI for India 🇮🇳
             </p>
           </div>
 
-          {/* AI Agents */}
+          {/* AI Gurujis */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">AI Agents</h3>
+            <h3 className="font-semibold text-lg">AI Gurujis</h3>
             <ul className="space-y-2 text-gray-400">
-              <li><Link to="/therapist" className="hover:text-primary transition-colors">AI Therapist</Link></li>
-              <li><Link to="/dietician" className="hover:text-primary transition-colors">AI Dietician</Link></li>
-              <li><Link to="/career" className="hover:text-primary transition-colors">Career Guide</Link></li>
-              <li><Link to="/priya" className="hover:text-primary transition-colors">Priya</Link></li>
+              <li><Link to="/therapist" className="hover:text-primary transition-colors">Mental Health Guru</Link></li>
+              <li><Link to="/dietician" className="hover:text-primary transition-colors">Nutrition Guru</Link></li>
+              <li><Link to="/career" className="hover:text-primary transition-colors">Career Guru</Link></li>
+              <li><Link to="/priya" className="hover:text-primary transition-colors">Priya Didi</Link></li>
             </ul>
           </div>
 
@@ -36,6 +39,7 @@ export const Footer = () => {
             <h3 className="font-semibold text-lg">Company</h3>
             <ul className="space-y-2 text-gray-400">
               <li><Link to="/about" className="hover:text-primary transition-colors">About Us</Link></li>
+              <li><Link to="/guru-dakshina" className="hover:text-primary transition-colors">Guru Dakshina</Link></li>
               <li><Link to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link to="/support" className="hover:text-primary transition-colors">Support</Link></li>
@@ -66,7 +70,7 @@ export const Footer = () => {
           <p className="text-gray-400 text-sm flex items-center justify-center space-x-1">
             <span>Made with</span>
             <Heart className="h-4 w-4 text-red-500" />
-            <span>for Bharat</span>
+            <span>for India</span>
           </p>
           <p className="text-gray-500 text-xs mt-2">
             © 2024 Gurukul AI. All rights reserved.

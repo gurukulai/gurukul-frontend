@@ -41,7 +41,7 @@ const TherapistPage = () => {
     {
       icon: Heart,
       title: "Empathetic Support",
-      description: "Compassionate AI trained to understand and respond to your emotional needs"
+      description: "Compassionate AI guruji trained to understand and respond to your emotional needs"
     },
     {
       icon: Shield,
@@ -82,11 +82,11 @@ const TherapistPage = () => {
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gray-900">
-              AI Therapist
+              Mental Health Guru
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Your compassionate mental health companion, ready to listen, understand, 
+              Your compassionate mental wellness guruji, ready to listen, understand, 
               and guide you through life's challenges with empathy and wisdom.
             </p>
 
@@ -139,7 +139,7 @@ const TherapistPage = () => {
         </div>
       </section>
 
-      {/* Specialties Section */}
+      {/* Specialties Section - Updated with light background */}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
@@ -150,13 +150,12 @@ const TherapistPage = () => {
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {specialties.map((specialty, index) => (
-                <Badge 
-                  key={index} 
-                  variant="secondary" 
-                  className="p-3 text-center justify-center bg-therapist-50 text-therapist-700 hover:bg-therapist-100 transition-colors"
+                <div 
+                  key={index}
+                  className="bg-white/70 backdrop-blur-sm border border-therapist-200 rounded-lg p-4 text-center hover:bg-therapist-50 transition-colors shadow-sm"
                 >
-                  {specialty}
-                </Badge>
+                  <span className="text-therapist-700 font-medium">{specialty}</span>
+                </div>
               ))}
             </div>
           </div>
@@ -170,7 +169,7 @@ const TherapistPage = () => {
             Ready to Start Your Healing Journey?
           </h2>
           <p className="text-xl mb-8 max-w-3xl mx-auto opacity-90">
-            Take the first step towards better mental health with compassionate AI support.
+            Take the first step towards better mental health with compassionate AI guruji support.
           </p>
           
           <Button 

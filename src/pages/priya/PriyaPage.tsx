@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -45,17 +46,17 @@ const PriyaPage = () => {
     {
       icon: Book,
       title: "Learning Support",
-      description: "Help with studies, explanations, and educational guidance"
+      description: "Help with studies, explanations, and educational guidance - just like your favorite didi"
     },
     {
       icon: Sparkles,
       title: "Creative Assistance",
-      description: "Support with creative projects, writing, and brainstorming"
+      description: "Support with creative projects, writing, and brainstorming sessions"
     },
     {
       icon: Coffee,
       title: "Daily Companion",
-      description: "Your friendly AI companion for everyday conversations and support"
+      description: "Your friendly AI saathi for everyday conversations and emotional support"
     }
   ];
 
@@ -81,12 +82,12 @@ const PriyaPage = () => {
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gray-900">
-              Hi, I'm Priya!
+              Hi, I'm Priya Didi!
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Your friendly AI companion! I'm here to chat, help with your daily tasks, 
-              answer questions, and be your supportive digital friend.
+              Your friendly AI saathi! I'm here to chat, help with your daily tasks, 
+              answer questions, and be your supportive digital elder sister - just like that cool didi next door!
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -96,7 +97,7 @@ const PriyaPage = () => {
                 disabled={isLoading}
                 className="bg-priya-500 hover:bg-priya-600 text-white px-8 py-4 text-lg"
               >
-                {isLoading ? 'Starting...' : 'Start Chatting with Priya'}
+                {isLoading ? 'Starting...' : 'Start Chatting with Priya Didi'}
                 <Heart className="ml-2 h-5 w-5" />
               </Button>
               
@@ -117,7 +118,7 @@ const PriyaPage = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">What Makes Me Special</h2>
-            <p className="text-xl text-gray-600">Your versatile AI friend for all occasions</p>
+            <p className="text-xl text-gray-600">Your versatile AI didi for all occasions</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -138,24 +139,23 @@ const PriyaPage = () => {
         </div>
       </section>
 
-      {/* Topics Section */}
+      {/* Topics Section - Updated with light background */}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">What We Can Talk About</h2>
-              <p className="text-xl text-gray-600">I love chatting about all sorts of topics!</p>
+              <p className="text-xl text-gray-600">I love chatting about all sorts of topics - bilkul dil khol ke!</p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {topics.map((topic, index) => (
-                <Badge 
-                  key={index} 
-                  variant="secondary" 
-                  className="p-3 text-center justify-center bg-priya-50 text-priya-700 hover:bg-priya-100 transition-colors"
+                <div 
+                  key={index}
+                  className="bg-white/70 backdrop-blur-sm border border-priya-200 rounded-lg p-4 text-center hover:bg-priya-50 transition-colors shadow-sm"
                 >
-                  {topic}
-                </Badge>
+                  <span className="text-priya-700 font-medium">{topic}</span>
+                </div>
               ))}
             </div>
           </div>
@@ -169,7 +169,7 @@ const PriyaPage = () => {
             Let's Be Friends!
           </h2>
           <p className="text-xl mb-8 max-w-3xl mx-auto opacity-90">
-            I'm excited to meet you and be your AI companion. Let's start a wonderful conversation!
+            I'm excited to meet you and be your AI saathi. Let's start a wonderful conversation - bas ek click ki doori hai!
           </p>
           
           <Button 
@@ -179,7 +179,7 @@ const PriyaPage = () => {
             disabled={isLoading}
             className="px-8 py-4 text-lg"
           >
-            {isLoading ? 'Starting...' : 'Chat with Priya'}
+            {isLoading ? 'Starting...' : 'Chat with Priya Didi'}
             <Heart className="ml-2 h-5 w-5" />
           </Button>
         </div>

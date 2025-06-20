@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
-import { Menu, X, LogOut, User, MessageCircle } from 'lucide-react';
+import { Menu, X, LogOut, User, MessageCircle, Brain } from 'lucide-react';
 
 export const Header = () => {
   const { user, login, logout } = useAuth();
@@ -39,10 +39,10 @@ export const Header = () => {
 
   const navItems = [
     { name: 'Home', href: '/' },
-    { name: 'Therapist', href: '/therapist' },
-    { name: 'Dietician', href: '/dietician' },
-    { name: 'Career', href: '/career' },
-    { name: 'Priya', href: '/priya' },
+    { name: 'Mind Guru', href: '/therapist' },
+    { name: 'Food Guru', href: '/dietician' },
+    { name: 'Success Guru', href: '/career' },
+    { name: 'Priya Didi', href: '/priya' },
   ];
 
   return (
@@ -101,6 +101,10 @@ export const Header = () => {
                   <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/my-chats')}>
                     <MessageCircle className="mr-2 h-4 w-4" />
                     <span>My Chats</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/memory-vault')}>
+                    <Brain className="mr-2 h-4 w-4" />
+                    <span>Memory Vault</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
