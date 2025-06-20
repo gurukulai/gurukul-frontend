@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,12 +9,12 @@ import { AI_AGENTS } from '@/lib/constants';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChat } from '@/contexts/ChatContext';
 import { Briefcase, MessageCircle, TrendingUp, Users, Target, BookOpen } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 
 const CareerPage = () => {
   const { user, login } = useAuth();
   const { createNewChat } = useChat();
-  const router = useRouter();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const agent = AI_AGENTS.CAREER;
@@ -29,7 +28,7 @@ const CareerPage = () => {
     setIsLoading(true);
     try {
       const chatId = await createNewChat(agent.id);
-      router.push(`/career/chat/${chatId}`);
+      navigate(`/career/chat/${chatId}`);
     } catch (error) {
       console.error('Failed to start chat:', error);
     } finally {
@@ -102,7 +101,7 @@ const CareerPage = () => {
               </Button>
               
               {user && (
-                <Link href="/career/history">
+                <Link to="/career/history">
                   <Button size="lg" variant="outline" className="px-8 py-4 text-lg border-career-500 text-career-500">
                     View Chat History
                   </Button>

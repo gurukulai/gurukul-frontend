@@ -1,5 +1,5 @@
 
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { Heart, Mail, Phone, MapPin } from 'lucide-react';
 
 export const Footer = () => {
@@ -24,10 +24,10 @@ export const Footer = () => {
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">AI Agents</h3>
             <ul className="space-y-2 text-gray-400">
-              <li><Link href="/therapist" className="hover:text-primary transition-colors">AI Therapist</Link></li>
-              <li><Link href="/dietician" className="hover:text-primary transition-colors">AI Dietician</Link></li>
-              <li><Link href="/career" className="hover:text-primary transition-colors">Career Guide</Link></li>
-              <li><Link href="/priya" className="hover:text-primary transition-colors">Priya</Link></li>
+              <li><Link to="/therapist" className="hover:text-primary transition-colors">AI Therapist</Link></li>
+              <li><Link to="/dietician" className="hover:text-primary transition-colors">AI Dietician</Link></li>
+              <li><Link to="/career" className="hover:text-primary transition-colors">Career Guide</Link></li>
+              <li><Link to="/priya" className="hover:text-primary transition-colors">Priya</Link></li>
             </ul>
           </div>
 
@@ -35,10 +35,10 @@ export const Footer = () => {
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">Company</h3>
             <ul className="space-y-2 text-gray-400">
-              <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-              <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
-              <li><Link href="/support" className="hover:text-primary transition-colors">Support</Link></li>
+              <li><Link to="/about" className="hover:text-primary transition-colors">About Us</Link></li>
+              <li><Link to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+              <li><Link to="/support" className="hover:text-primary transition-colors">Support</Link></li>
             </ul>
           </div>
 

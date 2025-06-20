@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,12 +9,12 @@ import { AI_AGENTS } from '@/lib/constants';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChat } from '@/contexts/ChatContext';
 import { Apple, MessageCircle, Utensils, TrendingUp, Heart, Clock } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 
 const DieticianPage = () => {
   const { user, login } = useAuth();
   const { createNewChat } = useChat();
-  const router = useRouter();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const agent = AI_AGENTS.DIETICIAN;
@@ -29,7 +28,7 @@ const DieticianPage = () => {
     setIsLoading(true);
     try {
       const chatId = await createNewChat(agent.id);
-      router.push(`/dietician/chat/${chatId}`);
+      navigate(`/dietician/chat/${chatId}`);
     } catch (error) {
       console.error('Failed to start chat:', error);
     } finally {
@@ -102,7 +101,7 @@ const DieticianPage = () => {
               </Button>
               
               {user && (
-                <Link href="/dietician/history">
+                <Link to="/dietician/history">
                   <Button size="lg" variant="outline" className="px-8 py-4 text-lg border-dietician-500 text-dietician-500">
                     View Chat History
                   </Button>

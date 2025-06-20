@@ -2,23 +2,23 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AI_AGENTS } from '@/lib/constants';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChat } from '@/contexts/ChatContext';
-import { MessageCircle, Heart, Sparkles, Book, Music, Coffee } from 'lucide-react';
-import Link from 'next/link';
+import { Brain, MessageCircle, Heart, Shield, Clock, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const PriyaPage = () => {
+const TherapistPage = () => {
   const { user, login } = useAuth();
   const { createNewChat } = useChat();
-  const router = useRouter();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  const agent = AI_AGENTS.PRIYA;
+  const agent = AI_AGENTS.THERAPIST;
 
   const handleStartChat = async () => {
     if (!user) {
@@ -29,7 +29,7 @@ const PriyaPage = () => {
     setIsLoading(true);
     try {
       const chatId = await createNewChat(agent.id);
-      router.push(`/priya/chat/${chatId}`);
+      navigate(`/therapist/chat/${chatId}`);
     } catch (error) {
       console.error('Failed to start chat:', error);
     } finally {
@@ -39,55 +39,55 @@ const PriyaPage = () => {
 
   const features = [
     {
-      icon: MessageCircle,
-      title: "Friendly Conversations",
-      description: "Chat about anything and everything in a warm, supportive environment"
+      icon: Heart,
+      title: "Empathetic Support",
+      description: "Compassionate AI trained to understand and respond to your emotional needs"
     },
     {
-      icon: Book,
-      title: "Learning Support",
-      description: "Help with studies, explanations, and educational guidance"
+      icon: Shield,
+      title: "Safe Space",
+      description: "Confidential environment where you can express yourself freely"
     },
     {
-      icon: Sparkles,
-      title: "Creative Assistance",
-      description: "Support with creative projects, writing, and brainstorming"
+      icon: Clock,
+      title: "24/7 Availability",
+      description: "Always here when you need someone to talk to, any time of day"
     },
     {
-      icon: Coffee,
-      title: "Daily Companion",
-      description: "Your friendly AI companion for everyday conversations and support"
+      icon: Users,
+      title: "Cultural Understanding",
+      description: "Aware of Indian cultural context and family dynamics"
     }
   ];
 
-  const topics = [
-    "General Chat",
-    "Study Help",
-    "Creative Writing",
-    "Life Advice",
-    "Entertainment",
-    "Technology",
-    "Culture & Arts",
-    "Daily Planning"
+  const specialties = [
+    "Anxiety & Stress",
+    "Depression",
+    "Relationship Issues",
+    "Family Problems",
+    "Work Stress",
+    "Self-Esteem",
+    "Grief & Loss",
+    "Life Transitions"
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-priya-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-therapist-50 to-blue-50">
       {/* Hero Section */}
       <section className="relative py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="w-20 h-20 bg-priya-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-3xl">👩</span>
+            <div className="w-20 h-20 bg-therapist-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Brain className="w-10 h-10 text-white" />
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gray-900">
-              Hi, I'm Priya!
+              AI Therapist
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Your friendly AI companion! I'm here to chat, help with your daily tasks, 
-              answer questions, and be your supportive digital friend.
+              Your compassionate mental health companion, ready to listen, understand, 
+              and guide you through life's challenges with empathy and wisdom.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -95,15 +95,15 @@ const PriyaPage = () => {
                 size="lg" 
                 onClick={handleStartChat}
                 disabled={isLoading}
-                className="bg-priya-500 hover:bg-priya-600 text-white px-8 py-4 text-lg"
+                className="bg-therapist-500 hover:bg-therapist-600 text-white px-8 py-4 text-lg"
               >
-                {isLoading ? 'Starting...' : 'Start Chatting with Priya'}
-                <Heart className="ml-2 h-5 w-5" />
+                {isLoading ? 'Starting...' : 'Start Therapy Session'}
+                <MessageCircle className="ml-2 h-5 w-5" />
               </Button>
               
               {user && (
-                <Link href="/priya/history">
-                  <Button size="lg" variant="outline" className="px-8 py-4 text-lg border-priya-500 text-priya-500">
+                <Link to="/therapist/history">
+                  <Button size="lg" variant="outline" className="px-8 py-4 text-lg border-therapist-500 text-therapist-500">
                     View Chat History
                   </Button>
                 </Link>
@@ -117,15 +117,15 @@ const PriyaPage = () => {
       <section className="py-16 bg-white/50 backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">What Makes Me Special</h2>
-            <p className="text-xl text-gray-600">Your versatile AI friend for all occasions</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Professional Mental Health Support</h2>
+            <p className="text-xl text-gray-600">Evidence-based therapeutic approaches adapted for AI</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-shadow">
                 <CardHeader>
-                  <div className="w-12 h-12 bg-priya-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-12 h-12 bg-therapist-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <feature.icon className="w-6 h-6 text-white" />
                   </div>
                   <CardTitle className="text-lg">{feature.title}</CardTitle>
@@ -139,23 +139,23 @@ const PriyaPage = () => {
         </div>
       </section>
 
-      {/* Topics Section */}
+      {/* Specialties Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">What We Can Talk About</h2>
-              <p className="text-xl text-gray-600">I love chatting about all sorts of topics!</p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">What I Can Help With</h2>
+              <p className="text-xl text-gray-600">Specialized support for various mental health concerns</p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {topics.map((topic, index) => (
+              {specialties.map((specialty, index) => (
                 <Badge 
                   key={index} 
                   variant="secondary" 
-                  className="p-3 text-center justify-center bg-priya-50 text-priya-700 hover:bg-priya-100 transition-colors"
+                  className="p-3 text-center justify-center bg-therapist-50 text-therapist-700 hover:bg-therapist-100 transition-colors"
                 >
-                  {topic}
+                  {specialty}
                 </Badge>
               ))}
             </div>
@@ -164,13 +164,13 @@ const PriyaPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-priya-500 text-white">
+      <section className="py-20 bg-therapist-500 text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Let's Be Friends!
+            Ready to Start Your Healing Journey?
           </h2>
           <p className="text-xl mb-8 max-w-3xl mx-auto opacity-90">
-            I'm excited to meet you and be your AI companion. Let's start a wonderful conversation!
+            Take the first step towards better mental health with compassionate AI support.
           </p>
           
           <Button 
@@ -180,8 +180,8 @@ const PriyaPage = () => {
             disabled={isLoading}
             className="px-8 py-4 text-lg"
           >
-            {isLoading ? 'Starting...' : 'Chat with Priya'}
-            <Heart className="ml-2 h-5 w-5" />
+            {isLoading ? 'Starting...' : 'Begin Session'}
+            <MessageCircle className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </section>
@@ -189,4 +189,4 @@ const PriyaPage = () => {
   );
 };
 
-export default PriyaPage;
+export default TherapistPage;

@@ -2,8 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -18,13 +17,13 @@ import { Menu, X, LogOut, User, MessageCircle } from 'lucide-react';
 
 export const Header = () => {
   const { user, logout } = useAuth();
-  const router = useRouter();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
       await logout();
-      router.push('/');
+      navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -43,7 +42,7 @@ export const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-orange-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">G</span>
@@ -57,7 +56,7 @@ export const Header = () => {
             {navItems.map((item) => (
               <Link
                 key={item.name}
-                href={item.href}
+                to={item.href}
                 className="text-sm font-medium transition-colors hover:text-primary"
               >
                 {item.name}
@@ -127,7 +126,7 @@ export const Header = () => {
               {navItems.map((item) => (
                 <Link
                   key={item.name}
-                  href={item.href}
+                  to={item.href}
                   className="px-2 py-2 text-sm font-medium transition-colors hover:text-primary"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

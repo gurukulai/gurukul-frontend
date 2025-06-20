@@ -55,8 +55,7 @@ export const ChatInput = ({
             disabled={disabled || isLoading}
             className="min-h-[60px] max-h-[120px] resize-none border-2 focus:border-opacity-50"
             style={{ 
-              borderColor: `${agentColor}30`,
-              focusBorderColor: agentColor 
+              borderColor: `${agentColor}30`
             }}
           />
         </div>

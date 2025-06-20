@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/router';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { AI_AGENTS } from '@/lib/constants';
@@ -12,11 +12,11 @@ import { MessageBubble } from '@/components/Chat/MessageBubble';
 import { ChatInput } from '@/components/Chat/ChatInput';
 import { TypingIndicator } from '@/components/Chat/TypingIndicator';
 import { ArrowLeft, Brain, MoreVertical } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 
 const TherapistChatPage = () => {
-  const router = useRouter();
-  const { chatId } = router.query;
+  const { chatId } = useParams<{ chatId: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { currentChat, sendMessage, loadChat, isTyping, error } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -25,7 +25,7 @@ const TherapistChatPage = () => {
   const agent = AI_AGENTS.THERAPIST;
 
   useEffect(() => {
-    if (chatId && typeof chatId === 'string') {
+    if (chatId) {
       loadChatData(chatId);
     }
   }, [chatId]);
@@ -61,7 +61,7 @@ const TherapistChatPage = () => {
           <Brain className="w-12 h-12 text-therapist-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-4">Please Sign In</h2>
           <p className="text-gray-600 mb-6">You need to be signed in to access therapy sessions.</p>
-          <Link href="/therapist">
+          <Link to="/therapist">
             <Button className="bg-therapist-500 hover:bg-therapist-600">
               Go Back
             </Button>
@@ -89,7 +89,7 @@ const TherapistChatPage = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Link href="/therapist">
+              <Link to="/therapist">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back
