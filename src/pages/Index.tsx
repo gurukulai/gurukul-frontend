@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -93,7 +92,7 @@ const HomePage = () => {
 
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
               {user ? (
-                <Link href="/therapist">
+                <Link to="/therapist">
                   <Button size="lg" className="bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white px-8 py-4 text-lg">
                     Start Chatting
                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -189,7 +188,7 @@ const HomePage = () => {
                       ))}
                     </div>
                     
-                    <Link href={agent.route}>
+                    <Link to={agent.route}>
                       <Button 
                         className="w-full text-white group-hover:shadow-lg transition-all"
                         style={{ backgroundColor: agent.primaryColor }}
@@ -244,7 +243,7 @@ const HomePage = () => {
           </p>
           
           {user ? (
-            <Link href="/therapist">
+            <Link to="/therapist">
               <Button size="lg" variant="secondary" className="px-8 py-4 text-lg">
                 Go to Dashboard
                 <ArrowRight className="ml-2 h-5 w-5" />
