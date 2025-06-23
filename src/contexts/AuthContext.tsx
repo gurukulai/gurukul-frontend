@@ -1,4 +1,3 @@
-
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -45,21 +44,64 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const login = async () => {
     try {
       setIsLoading(true);
+      console.log('Starting Google login process...');
+      
+      // Check if Google Client ID is configured
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!clientId || clientId === 'your-google-client-id') {
+        console.log('Google Client ID not configured, using demo login');
+        await demoLogin();
+        return;
+      }
       
       // Check if Google API is loaded
       if (typeof window.google === 'undefined') {
-        // Load Google Identity Services
+        console.log('Loading Google Identity Services...');
         await loadGoogleScript();
       }
       
       // Initialize Google Sign-In
+      console.log('Initializing Google Sign-In...');
       window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id',
+        client_id: clientId,
         callback: handleGoogleResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
       });
 
-      // Prompt the user to sign in
-      window.google.accounts.id.prompt();
+      // Create and render the Google Sign-In button
+      console.log('Rendering Google Sign-In button...');
+      const googleButton = document.createElement('div');
+      googleButton.id = 'google-signin-button';
+      googleButton.style.position = 'fixed';
+      googleButton.style.top = '-1000px';
+      googleButton.style.left = '-1000px';
+      document.body.appendChild(googleButton);
+      
+      window.google.accounts.id.renderButton(googleButton, {
+        type: 'standard',
+        theme: 'outline',
+        size: 'large',
+        text: 'signin_with',
+        shape: 'rectangular',
+        logo_alignment: 'left',
+      });
+      
+      // Trigger the sign-in
+      const button = googleButton.querySelector('div[role="button"]') as HTMLElement;
+      if (button) {
+        button.click();
+      } else {
+        console.log('Google button not found, using prompt fallback');
+        window.google.accounts.id.prompt();
+      }
+      
+      // Clean up the temporary button
+      setTimeout(() => {
+        if (document.getElementById('google-signin-button')) {
+          document.body.removeChild(googleButton);
+        }
+      }, 1000);
       
     } catch (error) {
       console.error('Login failed:', error);
@@ -86,7 +128,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     });
   };
 
-  const handleGoogleResponse = async (response: any) => {
+  const handleGoogleResponse = async (response: GoogleCredentialResponse) => {
     try {
       // Decode the JWT token to get user info
       const payload = JSON.parse(atob(response.credential.split('.')[1]));
@@ -162,6 +204,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 // Extend window interface for Google API
 declare global {
   interface Window {
-    google: any;
+    google: {
+      accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string;
+            callback: (response: GoogleCredentialResponse) => void;
+            auto_select?: boolean;
+            cancel_on_tap_outside?: boolean;
+          }) => void;
+          renderButton: (element: HTMLElement, options: GoogleButtonOptions) => void;
+          prompt: () => void;
+          disableAutoSelect: () => void;
+        };
+      };
+    };
   }
+}
+
+interface GoogleCredentialResponse {
+  credential: string;
+  select_by: string;
+}
+
+interface GoogleButtonOptions {
+  type?: 'standard' | 'icon';
+  theme?: 'outline' | 'filled_blue' | 'filled_black';
+  size?: 'large' | 'medium' | 'small';
+  text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
+  shape?: 'rectangular' | 'rounded' | 'circle' | 'square';
+  logo_alignment?: 'left' | 'center';
 }
