@@ -1,9 +1,10 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect, useRef } from 'react';
 import { ChatContextType, ChatSession, Chat, Message } from '@/lib/types';
 import { CHAT_CONFIG } from '@/lib/constants';
 import { useAuth } from './AuthContext';
+import { chatApi, ApiError } from '@/lib/api';
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
@@ -25,49 +26,116 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   const [chats, setChats] = useState<Chat[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Refs for polling
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastMessageIdRef = useRef<string | null>(null);
 
-  const generateMockResponse = useCallback((agentId: string, userMessage: string): Message[] => {
-    const responses = {
-      therapist: [
-        "I understand you're going through a challenging time. Let's explore this together.",
-        "Your feelings are completely valid. Can you tell me more about what's been on your mind?",
-        "It's important to acknowledge these emotions. How long have you been feeling this way?",
-      ],
-      dietician: [
-        "Based on what you've shared, I'd recommend focusing on balanced nutrition.",
-        "Let's create a meal plan that works with your lifestyle and preferences.",
-        "Nutrition is very personal. What are your current eating habits like?",
-      ],
-      career: [
-        "That's an excellent career goal! Let's break down the steps to get you there.",
-        "Your skills are valuable. Here's how we can leverage them for your next opportunity.",
-        "Career growth requires strategic planning. What's your timeline for these changes?",
-      ],
-      priya: [
-        "I'm here to help! What would you like to know or discuss today?",
-        "That's interesting! Tell me more about what you're thinking.",
-        "I love chatting about different topics. What's on your mind?",
-      ],
-    };
+  // Load chats on mount and when user changes
+  useEffect(() => {
+    if (user) {
+      loadChats();
+    } else {
+      setChats([]);
+      setCurrentChat(null);
+    }
+  }, [user]);
 
-    const agentResponses = responses[agentId as keyof typeof responses] || responses.priya;
-    const randomResponse = agentResponses[Math.floor(Math.random() * agentResponses.length)];
+  // Start/stop polling for new messages
+  useEffect(() => {
+    if (currentChat?.chatId && user) {
+      startPolling();
+      return () => stopPolling();
+    }
+  }, [currentChat?.chatId, user]);
 
-    return [{
-      id: `msg-${Date.now()}-${Math.random()}`,
-      chatId: currentChat?.chatId || '',
-      userId: 'assistant',
-      agentId,
-      content: randomResponse,
-      role: 'assistant',
-      timestamp: new Date(),
-      metadata: {
-        messageIndex: 1,
-        totalMessages: 1,
-        confidence: 0.95
+  const loadChats = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      const fetchedChats = await chatApi.getChats();
+      setChats(fetchedChats);
+    } catch (err) {
+      const errorMessage = err instanceof ApiError 
+        ? `Failed to load chats: ${err.message}` 
+        : 'Failed to load chats';
+      setError(errorMessage);
+      console.error('Load chats error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  const startPolling = useCallback(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+    }
+
+    pollingIntervalRef.current = setInterval(async () => {
+      if (!currentChat?.chatId || !user) return;
+
+      try {
+        const newMessages = await chatApi.pollMessages(
+          currentChat.chatId, 
+          lastMessageIdRef.current
+        );
+
+        if (newMessages.length > 0) {
+          setCurrentChat(prev => prev ? {
+            ...prev,
+            messages: [...prev.messages, ...newMessages],
+            hasNewMessages: true
+          } : null);
+
+          // Update last message ID
+          const lastMessage = newMessages[newMessages.length - 1];
+          lastMessageIdRef.current = lastMessage.id;
+
+          // Mark messages as read
+          await chatApi.markAsRead(currentChat.chatId, newMessages.map(m => m.id));
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+        // Don't show polling errors to user as they're not critical
       }
-    }];
-  }, [currentChat]);
+    }, CHAT_CONFIG.POLLING_INTERVAL);
+  }, [currentChat?.chatId, user]);
+
+  const stopPolling = useCallback(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  }, []);
+
+  const createNewChat = useCallback(async (agentId: string): Promise<string> => {
+    try {
+      const newChat = await chatApi.createChat(agentId);
+      
+      const newChatSession: ChatSession = {
+        chatId: newChat.id,
+        messages: [],
+        isLoading: false,
+        hasNewMessages: false,
+        pollCount: 0
+      };
+
+      setCurrentChat(newChatSession);
+      setChats(prev => [newChat, ...prev]);
+      
+      return newChat.id;
+    } catch (err) {
+      const errorMessage = err instanceof ApiError 
+        ? `Failed to create new chat: ${err.message}` 
+        : 'Failed to create new chat';
+      setError(errorMessage);
+      console.error('Create chat error:', err);
+      throw err;
+    }
+  }, []);
 
   const sendMessage = useCallback(async (content: string, agentId: string, chatId?: string) => {
     if (!user) {
@@ -77,12 +145,13 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
 
     try {
       setError(null);
+      setIsTyping(true);
       
       const finalChatId = chatId || currentChat?.chatId || await createNewChat(agentId);
       
-      // Add user message immediately
+      // Add user message immediately for optimistic UI
       const userMessage: Message = {
-        id: `msg-${Date.now()}-user`,
+        id: `temp-${Date.now()}-user`,
         chatId: finalChatId,
         userId: user.id,
         agentId,
@@ -96,95 +165,115 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         messages: [...prev.messages, userMessage]
       } : null);
 
-      // Random delay for typing animation (1-3 seconds)
-      const typingDelay = Math.random() * 2000 + 1000; // 1000-3000ms
+      // Send message to backend
+      const sentMessage = await chatApi.sendMessage(finalChatId, content, agentId);
       
-      setTimeout(() => {
-        setIsTyping(true);
-      }, typingDelay);
+      // Replace temporary message with real one
+      setCurrentChat(prev => prev ? {
+        ...prev,
+        messages: prev.messages.map(msg => 
+          msg.id === userMessage.id ? sentMessage : msg
+        )
+      } : null);
 
-      // Total response time (typing delay + response time)
-      const totalDelay = typingDelay + CHAT_CONFIG.TYPING_DELAY;
-      
-      setTimeout(async () => {
-        // Generate mock response
-        const mockMessages = generateMockResponse(agentId, content);
-        
-        // Add messages with delay for realistic effect
-        for (let i = 0; i < mockMessages.length; i++) {
-          if (i > 0) {
-            await new Promise(resolve => setTimeout(resolve, CHAT_CONFIG.MESSAGE_DISPLAY_DELAY));
-          }
-          
-          setCurrentChat(prev => prev ? {
-            ...prev,
-            messages: [...prev.messages, mockMessages[i]]
-          } : null);
-        }
-        
-        setIsTyping(false);
-      }, totalDelay);
+      // Update last message ID for polling
+      lastMessageIdRef.current = sentMessage.id;
+
+      // Update chat list with new message
+      setChats(prev => prev.map(chat => 
+        chat.id === finalChatId 
+          ? { 
+              ...chat, 
+              updatedAt: new Date(),
+              messageCount: chat.messageCount + 1,
+              lastMessage: content
+            }
+          : chat
+      ));
 
     } catch (err) {
-      setError('Failed to send message. Please try again.');
+      const errorMessage = err instanceof ApiError 
+        ? `Failed to send message: ${err.message}` 
+        : 'Failed to send message. Please try again.';
+      setError(errorMessage);
       console.error('Send message error:', err);
+      
+      // Remove temporary message on error
+      setCurrentChat(prev => prev ? {
+        ...prev,
+        messages: prev.messages.filter(msg => !msg.id.startsWith('temp-'))
+      } : null);
+    } finally {
       setIsTyping(false);
     }
-  }, [user, currentChat, generateMockResponse]);
+  }, [user, currentChat, createNewChat]);
 
   const loadChat = useCallback(async (chatId: string) => {
     try {
       setError(null);
+      setIsLoading(true);
       
-      const mockChat: ChatSession = {
-        chatId,
-        messages: [],
-        isLoading: false,
-        hasNewMessages: false,
-        pollCount: 0
-      };
+      const chatSession = await chatApi.getChat(chatId);
+      setCurrentChat(chatSession);
+      
+      // Set last message ID for polling
+      if (chatSession.messages.length > 0) {
+        const lastMessage = chatSession.messages[chatSession.messages.length - 1];
+        lastMessageIdRef.current = lastMessage.id;
+      }
 
-      setCurrentChat(mockChat);
+      // Mark messages as read
+      const unreadMessages = chatSession.messages.filter(msg => 
+        msg.role === 'assistant' && !msg.metadata?.read
+      );
+      if (unreadMessages.length > 0) {
+        await chatApi.markAsRead(chatId, unreadMessages.map(m => m.id));
+      }
+
     } catch (err) {
-      setError('Failed to load chat');
+      const errorMessage = err instanceof ApiError 
+        ? `Failed to load chat: ${err.message}` 
+        : 'Failed to load chat';
+      setError(errorMessage);
       console.error('Load chat error:', err);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-  const createNewChat = useCallback(async (agentId: string): Promise<string> => {
+  const updateChatTitle = useCallback(async (chatId: string, title: string) => {
     try {
-      const newChatId = `chat-${Date.now()}-${agentId}`;
-      
-      const newChat: ChatSession = {
-        chatId: newChatId,
-        messages: [],
-        isLoading: false,
-        hasNewMessages: false,
-        pollCount: 0
-      };
-
-      setCurrentChat(newChat);
-      
-      // Add to chats list
-      const newChatItem: Chat = {
-        id: newChatId,
-        userId: user?.id || '',
-        agentId,
-        title: `New ${agentId} chat`,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        messageCount: 0
-      };
-      
-      setChats(prev => [newChatItem, ...prev]);
-      
-      return newChatId;
+      await chatApi.updateChatTitle(chatId, title);
+      setChats(prev => prev.map(chat => 
+        chat.id === chatId ? { ...chat, title } : chat
+      ));
     } catch (err) {
-      setError('Failed to create new chat');
-      console.error('Create chat error:', err);
-      throw err;
+      const errorMessage = err instanceof ApiError 
+        ? `Failed to update chat title: ${err.message}` 
+        : 'Failed to update chat title';
+      setError(errorMessage);
+      console.error('Update chat title error:', err);
     }
-  }, [user]);
+  }, []);
+
+  const deleteChat = useCallback(async (chatId: string) => {
+    try {
+      await chatApi.deleteChat(chatId);
+      setChats(prev => prev.filter(chat => chat.id !== chatId));
+      
+      // If deleted chat is current chat, clear it
+      if (currentChat?.chatId === chatId) {
+        setCurrentChat(null);
+        lastMessageIdRef.current = null;
+      }
+    } catch (err) {
+      const errorMessage = err instanceof ApiError 
+        ? `Failed to delete chat: ${err.message}` 
+        : 'Failed to delete chat';
+      setError(errorMessage);
+      console.error('Delete chat error:', err);
+    }
+  }, [currentChat]);
 
   const value: ChatContextType = {
     currentChat,
@@ -192,8 +281,12 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     sendMessage,
     loadChat,
     createNewChat,
+    updateChatTitle,
+    deleteChat,
     isTyping,
-    error
+    isLoading,
+    error,
+    loadChats
   };
 
   return (

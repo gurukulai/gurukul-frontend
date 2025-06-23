@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   email: string;
@@ -21,6 +20,7 @@ export interface Message {
     messageIndex?: number;
     totalMessages?: number;
     confidence?: number;
+    read?: boolean;
   };
 }
 
@@ -64,6 +64,10 @@ export interface ChatContextType {
   sendMessage: (content: string, agentId: string, chatId?: string) => Promise<void>;
   loadChat: (chatId: string) => Promise<void>;
   createNewChat: (agentId: string) => Promise<string>;
+  updateChatTitle: (chatId: string, title: string) => Promise<void>;
+  deleteChat: (chatId: string) => Promise<void>;
   isTyping: boolean;
+  isLoading: boolean;
   error: string | null;
+  loadChats: () => Promise<void>;
 }

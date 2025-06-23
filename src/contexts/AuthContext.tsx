@@ -78,6 +78,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
 
         const data = await response.json();
+        console.log('user login data', data);
         
         if (data) {
           const userData: User = {
@@ -91,6 +92,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           
           setUser(userData);
           localStorage.setItem('gurukul-user', JSON.stringify(userData));
+          localStorage.setItem('authToken', data.token);
           
           // Clean up URL by removing the code parameter
           window.history.replaceState({}, document.title, window.location.pathname);
