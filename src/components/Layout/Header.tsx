@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -40,6 +40,11 @@ export const Header = () => {
   const { user, login, logout, isLoading } = useAuth();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Debug logging for user state in Header
+  useEffect(() => {
+    console.log('Header received user state:', user);
+  }, [user]);
 
   const handleLogin = async () => {
     try {
