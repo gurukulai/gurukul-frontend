@@ -1,5 +1,5 @@
 
-# Gurukul AI - AI for Bharat
+# Gurukul AI - AI for India
 
 A comprehensive AI-powered platform providing personalized assistance for mental health, nutrition, career guidance, and general conversations. Built with Next.js, TypeScript, and Tailwind CSS.
 
@@ -320,4 +320,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ for Bharat** 🇮🇳
+**Made with ❤️ for India** 🇮🇳

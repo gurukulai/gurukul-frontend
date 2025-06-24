@@ -70,4 +70,5 @@ export interface ChatContextType {
   isLoading: boolean;
   error: string | null;
   loadChats: () => Promise<void>;
+  isConnected: boolean;
 }

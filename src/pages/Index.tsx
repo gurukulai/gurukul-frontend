@@ -77,7 +77,7 @@ const HomePage = () => {
           }`}>
             <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary/10 to-orange-500/10 rounded-full px-4 py-2 mb-6">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">AI for Bharat</span>
+              <span className="text-sm font-medium text-primary">AI for India</span>
             </div>
             
             <h1 className="text-5xl md:text-7xl font-bold mb-6">

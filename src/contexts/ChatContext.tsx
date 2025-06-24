@@ -5,6 +5,7 @@ import { ChatContextType, ChatSession, Chat, Message } from '@/lib/types';
 import { CHAT_CONFIG } from '@/lib/constants';
 import { useAuth } from './AuthContext';
 import { chatApi, ApiError } from '@/lib/api';
+import { socketService, TypingEvent, ReadReceipt, MessageData, ChatUpdate, ErrorData } from '@/lib/socket';
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
@@ -27,28 +28,148 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   
-  // Refs for polling
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const lastMessageIdRef = useRef<string | null>(null);
+  // Refs for managing state
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentChatIdRef = useRef<string | null>(null);
 
-  // Load chats on mount and when user changes
+  // Initialize WebSocket connection when user changes
   useEffect(() => {
     if (user) {
-      loadChats();
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        initializeWebSocket(token);
+      }
     } else {
+      socketService.disconnect();
+      setIsConnected(false);
       setChats([]);
       setCurrentChat(null);
     }
   }, [user]);
 
-  // Start/stop polling for new messages
+  // Cleanup on unmount
   useEffect(() => {
-    if (currentChat?.chatId && user) {
-      startPolling();
-      return () => stopPolling();
+    return () => {
+      socketService.disconnect();
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const initializeWebSocket = async (token: string) => {
+    try {
+      await socketService.connect(token);
+      setIsConnected(true);
+      setupWebSocketListeners();
+      loadChats();
+    } catch (error) {
+      console.error('Failed to connect WebSocket:', error);
+      setError('Failed to establish real-time connection');
+      // Fallback to REST API
+      loadChats();
     }
-  }, [currentChat?.chatId, user]);
+  };
+
+  const setupWebSocketListeners = () => {
+    // Listen for new messages
+    socketService.on('message', handleNewMessage);
+    
+    // Listen for typing events
+    socketService.on('typing', handleTypingEvent);
+    
+    // Listen for read receipts
+    socketService.on('read_receipt', handleReadReceipt);
+    
+    // Listen for chat updates
+    socketService.on('chat_update', handleChatUpdate);
+    
+    // Listen for connection events
+    socketService.on('error', handleSocketError);
+    socketService.on('disconnect', handleSocketDisconnect);
+  };
+
+  const handleNewMessage = (data: MessageData) => {
+    if (data.message) {
+      setCurrentChat(prev => {
+        if (prev && prev.chatId === data.chatId) {
+          // Replace temporary message if it exists
+          const messages = prev.messages.map(msg => 
+            msg.id === data.messageId ? data.message! : msg
+          );
+          
+          // Add new message if it doesn't exist
+          if (!messages.find(msg => msg.id === data.message!.id)) {
+            messages.push(data.message!);
+          }
+          
+          return {
+            ...prev,
+            messages,
+            hasNewMessages: true
+          };
+        }
+        return prev;
+      });
+
+      // Update chat list
+      setChats(prev => prev.map(chat => 
+        chat.id === data.chatId 
+          ? { 
+              ...chat, 
+              updatedAt: new Date(),
+              messageCount: chat.messageCount + 1,
+              lastMessage: data.message!.content
+            }
+          : chat
+      ));
+    }
+  };
+
+  const handleTypingEvent = (data: TypingEvent) => {
+    if (data.chatId === currentChatIdRef.current && data.userId === 'assistant') {
+      setIsTyping(data.isTyping);
+    }
+  };
+
+  const handleReadReceipt = (data: ReadReceipt) => {
+    // Update message read status
+    setCurrentChat(prev => {
+      if (prev && prev.chatId === data.chatId) {
+        const messages = prev.messages.map(msg => 
+          data.messageIds.includes(msg.id) 
+            ? { ...msg, metadata: { ...msg.metadata, read: true } }
+            : msg
+        );
+        return { ...prev, messages };
+      }
+      return prev;
+    });
+  };
+
+  const handleChatUpdate = (data: ChatUpdate) => {
+    // Handle chat updates from other users or system
+    if (data.updates) {
+      setChats(prev => prev.map(chat => 
+        chat.id === data.chatId 
+          ? { ...chat, ...data.updates }
+          : chat
+      ));
+    }
+  };
+
+  const handleSocketError = (data: ErrorData) => {
+    console.error('WebSocket error:', data);
+    setError('Real-time connection error. Messages may be delayed.');
+  };
+
+  const handleSocketDisconnect = (data: ErrorData) => {
+    console.log('WebSocket disconnected:', data);
+    setIsConnected(false);
+    setError('Connection lost. Attempting to reconnect...');
+  };
 
   const loadChats = useCallback(async () => {
     if (!user) return;
@@ -69,48 +190,6 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     }
   }, [user]);
 
-  const startPolling = useCallback(() => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-    }
-
-    pollingIntervalRef.current = setInterval(async () => {
-      if (!currentChat?.chatId || !user) return;
-
-      try {
-        const newMessages = await chatApi.pollMessages(
-          currentChat.chatId, 
-          lastMessageIdRef.current
-        );
-
-        if (newMessages.length > 0) {
-          setCurrentChat(prev => prev ? {
-            ...prev,
-            messages: [...prev.messages, ...newMessages],
-            hasNewMessages: true
-          } : null);
-
-          // Update last message ID
-          const lastMessage = newMessages[newMessages.length - 1];
-          lastMessageIdRef.current = lastMessage.id;
-
-          // Mark messages as read
-          await chatApi.markAsRead(currentChat.chatId, newMessages.map(m => m.id));
-        }
-      } catch (err) {
-        console.error('Polling error:', err);
-        // Don't show polling errors to user as they're not critical
-      }
-    }, CHAT_CONFIG.POLLING_INTERVAL);
-  }, [currentChat?.chatId, user]);
-
-  const stopPolling = useCallback(() => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-  }, []);
-
   const createNewChat = useCallback(async (agentId: string): Promise<string> => {
     try {
       const newChat = await chatApi.createChat(agentId);
@@ -126,6 +205,11 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       setCurrentChat(newChatSession);
       setChats(prev => [newChat, ...prev]);
       
+      // Join the chat room via WebSocket
+      if (isConnected) {
+        socketService.joinChat(newChat.id);
+      }
+      
       return newChat.id;
     } catch (err) {
       const errorMessage = err instanceof ApiError 
@@ -135,7 +219,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       console.error('Create chat error:', err);
       throw err;
     }
-  }, []);
+  }, [isConnected]);
 
   const sendMessage = useCallback(async (content: string, agentId: string, chatId?: string) => {
     if (!user) {
@@ -148,6 +232,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       setIsTyping(true);
       
       const finalChatId = chatId || currentChat?.chatId || await createNewChat(agentId);
+      currentChatIdRef.current = finalChatId;
       
       // Add user message immediately for optimistic UI
       const userMessage: Message = {
@@ -165,31 +250,45 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         messages: [...prev.messages, userMessage]
       } : null);
 
-      // Send message to backend
-      const sentMessage = await chatApi.sendMessage(finalChatId, content, agentId);
-      
-      // Replace temporary message with real one
-      setCurrentChat(prev => prev ? {
-        ...prev,
-        messages: prev.messages.map(msg => 
-          msg.id === userMessage.id ? sentMessage : msg
-        )
-      } : null);
+      // Send via WebSocket if connected, otherwise fallback to REST API
+      if (isConnected) {
+        socketService.sendMessage(finalChatId, content, agentId);
+        
+        // Send typing indicator
+        socketService.sendTyping(finalChatId, user.id, agentId, true);
+        
+        // Clear typing indicator after delay
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+        typingTimeoutRef.current = setTimeout(() => {
+          socketService.sendTyping(finalChatId, user.id, agentId, false);
+        }, 3000);
+        
+      } else {
+        // Fallback to REST API
+        const sentMessage = await chatApi.sendMessage(finalChatId, content, agentId);
+        
+        // Replace temporary message with real one
+        setCurrentChat(prev => prev ? {
+          ...prev,
+          messages: prev.messages.map(msg => 
+            msg.id === userMessage.id ? sentMessage : msg
+          )
+        } : null);
 
-      // Update last message ID for polling
-      lastMessageIdRef.current = sentMessage.id;
-
-      // Update chat list with new message
-      setChats(prev => prev.map(chat => 
-        chat.id === finalChatId 
-          ? { 
-              ...chat, 
-              updatedAt: new Date(),
-              messageCount: chat.messageCount + 1,
-              lastMessage: content
-            }
-          : chat
-      ));
+        // Update chat list with new message
+        setChats(prev => prev.map(chat => 
+          chat.id === finalChatId 
+            ? { 
+                ...chat, 
+                updatedAt: new Date(),
+                messageCount: chat.messageCount + 1,
+                lastMessage: content
+              }
+            : chat
+        ));
+      }
 
     } catch (err) {
       const errorMessage = err instanceof ApiError 
@@ -206,20 +305,20 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     } finally {
       setIsTyping(false);
     }
-  }, [user, currentChat, createNewChat]);
+  }, [user, currentChat, createNewChat, isConnected]);
 
   const loadChat = useCallback(async (chatId: string) => {
     try {
       setError(null);
       setIsLoading(true);
+      currentChatIdRef.current = chatId;
       
       const chatSession = await chatApi.getChat(chatId);
       setCurrentChat(chatSession);
-      
-      // Set last message ID for polling
-      if (chatSession.messages.length > 0) {
-        const lastMessage = chatSession.messages[chatSession.messages.length - 1];
-        lastMessageIdRef.current = lastMessage.id;
+
+      // Join the chat room via WebSocket
+      if (isConnected) {
+        socketService.joinChat(chatId);
       }
 
       // Mark messages as read
@@ -227,7 +326,12 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         msg.role === 'assistant' && !msg.metadata?.read
       );
       if (unreadMessages.length > 0) {
-        await chatApi.markAsRead(chatId, unreadMessages.map(m => m.id));
+        const messageIds = unreadMessages.map(m => m.id);
+        if (isConnected) {
+          socketService.sendReadReceipt(chatId, messageIds, user?.id || '');
+        } else {
+          await chatApi.markAsRead(chatId, messageIds);
+        }
       }
 
     } catch (err) {
@@ -239,7 +343,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isConnected, user]);
 
   const updateChatTitle = useCallback(async (chatId: string, title: string) => {
     try {
@@ -261,10 +365,15 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       await chatApi.deleteChat(chatId);
       setChats(prev => prev.filter(chat => chat.id !== chatId));
       
+      // Leave the chat room via WebSocket
+      if (isConnected) {
+        socketService.leaveChat(chatId);
+      }
+      
       // If deleted chat is current chat, clear it
       if (currentChat?.chatId === chatId) {
         setCurrentChat(null);
-        lastMessageIdRef.current = null;
+        currentChatIdRef.current = null;
       }
     } catch (err) {
       const errorMessage = err instanceof ApiError 
@@ -273,7 +382,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       setError(errorMessage);
       console.error('Delete chat error:', err);
     }
-  }, [currentChat]);
+  }, [currentChat, isConnected]);
 
   const value: ChatContextType = {
     currentChat,
@@ -286,7 +395,8 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     isTyping,
     isLoading,
     error,
-    loadChats
+    loadChats,
+    isConnected
   };
 
   return (
