@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -159,7 +158,7 @@ const TherapistChatPage = () => {
             {/* Chat Input */}
             <ChatInput
               onSendMessage={handleSendMessage}
-              disabled={isTyping}
+              disabled={false}
               placeholder="Share what's on your mind..."
               agentColor={agent.primaryColor}
             />

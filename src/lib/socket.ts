@@ -1,4 +1,6 @@
+import { ChartNoAxesColumnDecreasing } from 'lucide-react';
 import { Message, Chat } from './types';
+import { io, Socket } from 'socket.io-client';
 
 export interface SocketMessage {
   type: 'message' | 'typing' | 'read_receipt' | 'chat_update' | 'error' | 'ping' | 'pong';
@@ -57,10 +59,7 @@ export interface PongData {
 }
 
 class WebSocketService {
-  private socket: WebSocket | null = null;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000;
+  private socket: Socket | null = null;
   private pingInterval: NodeJS.Timeout | null = null;
   private messageQueue: SocketMessage[] = [];
   private isConnecting = false;
@@ -75,7 +74,7 @@ class WebSocketService {
 
   connect(token: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (this.socket?.readyState === WebSocket.OPEN) {
+      if (this.socket && this.socket.connected) {
         resolve();
         return;
       }
@@ -86,32 +85,55 @@ class WebSocketService {
       }
 
       this.isConnecting = true;
-      const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3001/ws';
-      
+      const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
+
       try {
-        this.socket = new WebSocket(`${wsUrl}?token=${encodeURIComponent(token)}`);
-        
-        this.socket.onopen = () => {
-          console.log('WebSocket connected');
+        this.socket = io(wsUrl, {
+          extraHeaders: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        this.socket.on('connect', () => {
+          console.log('Socket.IO connected');
           this.isConnecting = false;
-          this.reconnectAttempts = 0;
           this.setupPingInterval();
           this.flushMessageQueue();
           resolve();
-        };
+        });
 
-        this.socket.onmessage = this.handleMessage;
-        this.socket.onerror = this.handleError;
-        this.socket.onclose = this.handleClose;
+        this.socket.on('connect_error', (err: Error) => {
+          this.isConnecting = false;
+          console.error('Socket.IO connection error:', err);
+          reject(err);
+        });
+
+        this.socket.on('disconnect', (reason: string) => {
+          this.handleClose({ code: 1000, reason } as CloseEvent);
+        });
+
+        this.socket.on('message', (message: SocketMessage) => {
+          this.handleMessage({ data: JSON.stringify(message) } as MessageEvent);
+        });
+
+        this.socket.on('error', (data: unknown) => {
+          this.handleError({} as Event);
+        });
+
+        // Listen for all custom events
+        ['pong', 'error', 'typing', 'read_receipt', 'chat_update'].forEach((event) => {
+          this.socket!.on(event, (data: SocketMessageData) => {
+            this.emit(event, data);
+          });
+        });
 
         // Set connection timeout
         setTimeout(() => {
-          if (this.socket?.readyState !== WebSocket.OPEN) {
+          if (!this.socket?.connected) {
             this.isConnecting = false;
             reject(new Error('Connection timeout'));
           }
         }, 10000);
-
       } catch (error) {
         this.isConnecting = false;
         reject(error);
@@ -126,7 +148,7 @@ class WebSocketService {
     }
 
     if (this.socket) {
-      this.socket.close(1000, 'Client disconnect');
+      this.socket.disconnect();
       this.socket = null;
     }
 
@@ -140,7 +162,7 @@ class WebSocketService {
     }
 
     this.pingInterval = setInterval(() => {
-      if (this.socket?.readyState === WebSocket.OPEN) {
+      if (this.socket && this.socket.connected) {
         this.send({
           type: 'ping',
           data: { timestamp: Date.now() },
@@ -153,61 +175,41 @@ class WebSocketService {
   private handleMessage(event: MessageEvent): void {
     try {
       const message: SocketMessage = JSON.parse(event.data);
-      
       switch (message.type) {
         case 'pong':
           // Handle pong response
           break;
         case 'error':
-          console.error('WebSocket error:', message.data);
+          console.error('Socket.IO error 1:', message.data);
           this.emit('error', message.data);
           break;
         default:
           this.emit(message.type, message.data);
       }
     } catch (error) {
-      console.error('Failed to parse WebSocket message:', error);
+      console.error('Failed to parse Socket.IO message:', error);
     }
   }
 
   private handleError(event: Event): void {
-    console.error('WebSocket error:', event);
-    this.emit('error', { message: 'WebSocket connection error' });
+    console.error('Socket.IO error 2:', event);
+    this.emit('error', { message: 'Socket.IO connection error' });
   }
 
   private handleClose(event: CloseEvent): void {
-    console.log('WebSocket disconnected:', event.code, event.reason);
-    
+    console.log('Socket.IO disconnected:', event.code, event.reason);
+
     if (this.pingInterval) {
       clearInterval(this.pingInterval);
       this.pingInterval = null;
     }
 
-    // Attempt to reconnect if not a clean close
-    if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
-      setTimeout(() => {
-        this.reconnectAttempts++;
-        this.reconnect();
-      }, this.reconnectDelay * this.reconnectAttempts);
-    }
-
     this.emit('disconnect', { message: `Disconnected: ${event.reason}`, code: event.code });
   }
 
-  private async reconnect(): Promise<void> {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      try {
-        await this.connect(token);
-      } catch (error) {
-        console.error('Reconnection failed:', error);
-      }
-    }
-  }
-
   send(message: SocketMessage): void {
-    if (this.socket?.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify(message));
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('message', message);
     } else {
       // Queue message for later if not connected
       this.messageQueue.push(message);
@@ -217,8 +219,8 @@ class WebSocketService {
   private flushMessageQueue(): void {
     while (this.messageQueue.length > 0) {
       const message = this.messageQueue.shift();
-      if (message && this.socket?.readyState === WebSocket.OPEN) {
-        this.socket.send(JSON.stringify(message));
+      if (message && this.socket && this.socket.connected) {
+        this.socket.emit('message', message);
       }
     }
   }
@@ -296,11 +298,12 @@ class WebSocketService {
 
   // Utility methods
   isConnected(): boolean {
-    return this.socket?.readyState === WebSocket.OPEN;
+    return !!(this.socket && this.socket.connected);
   }
 
   getConnectionState(): number {
-    return this.socket?.readyState || WebSocket.CLOSED;
+    if (!this.socket) return 3; // 3 = CLOSED
+    return this.socket.connected ? 1 : 3; // 1 = OPEN, 3 = CLOSED
   }
 }
 

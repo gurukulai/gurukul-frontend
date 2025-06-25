@@ -115,7 +115,6 @@ export const useChat = () => {
 
     try {
       setError(null);
-      setIsTyping(true);
       
       const finalChatId = chatId || currentChatId || await createNewChat(agentId);
       
@@ -139,30 +138,12 @@ export const useChat = () => {
         };
       });
 
-      // Send via WebSocket if connected, otherwise fallback to REST API
-      const sentViaWebSocket = wsSendMessage(finalChatId, content, agentId);
+      // Send via WebSocket (will be queued if not connected)
+      wsSendMessage(finalChatId, content, agentId);
       
-      if (sentViaWebSocket) {
-        // Send typing indicator
+      // Send typing indicator if connected
+      if (isConnected) {
         sendTyping(finalChatId, user.id, agentId, true);
-      } else {
-        // Fallback to REST API
-        const sentMessage = await sendMessageMutation.mutateAsync({ 
-          chatId: finalChatId, 
-          content, 
-          agentId 
-        });
-        
-        // Replace temporary message with real one
-        queryClient.setQueryData(['chat', finalChatId], (oldChat: ChatSession | undefined) => {
-          if (!oldChat) return oldChat;
-          return {
-            ...oldChat,
-            messages: oldChat.messages.map((msg: Message) => 
-              msg.id === userMessage.id ? sentMessage : msg
-            )
-          };
-        });
       }
 
     } catch (err) {
@@ -179,10 +160,8 @@ export const useChat = () => {
           };
         });
       }
-    } finally {
-      setIsTyping(false);
     }
-  }, [user, currentChatId, createNewChat, wsSendMessage, sendTyping, sendMessageMutation, queryClient]);
+  }, [user, currentChatId, createNewChat, wsSendMessage, sendTyping, isConnected, queryClient]);
 
   const updateChatTitle = useCallback(async (chatId: string, title: string) => {
     try {

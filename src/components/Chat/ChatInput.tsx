@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useState, KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Loader2 } from 'lucide-react';
+import { Send } from 'lucide-react';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => Promise<void>;
@@ -20,14 +19,12 @@ export const ChatInput = ({
   agentColor = '#FF6B35'
 }: ChatInputProps) => {
   const [message, setMessage] = useState('');
-  const [isSending, setIsSending] = useState(false);
 
   const handleSend = async () => {
     if (!message.trim() || disabled) return;
 
     const messageToSend = message.trim();
     setMessage(''); // Clear input immediately
-    setIsSending(true);
     
     try {
       await onSendMessage(messageToSend);
@@ -35,8 +32,6 @@ export const ChatInput = ({
       console.error('Failed to send message:', error);
       // Restore message on error
       setMessage(messageToSend);
-    } finally {
-      setIsSending(false);
     }
   };
 
@@ -70,11 +65,7 @@ export const ChatInput = ({
           className="h-[60px] px-4 text-white"
           style={{ backgroundColor: agentColor }}
         >
-          {isSending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="h-4 w-4" />
-          )}
+          <Send className="h-4 w-4" />
         </Button>
       </div>
     </div>

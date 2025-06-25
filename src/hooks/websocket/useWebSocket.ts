@@ -119,25 +119,21 @@ export const useWebSocket = () => {
 
   const handleSocketError = useCallback((data: ErrorData) => {
     console.error('WebSocket error:', data);
-    setError('Real-time connection error. Messages may be delayed.');
+    setError('Real-time connection error. Messages will be sent when connection is restored.');
   }, []);
 
   const handleSocketDisconnect = useCallback((data: ErrorData) => {
     console.log('WebSocket disconnected:', data);
     setIsConnected(false);
-    setError('Connection lost. Attempting to reconnect...');
+    setError('Connection lost. Messages will be sent when connection is restored.');
   }, []);
 
   const sendMessage = useCallback((chatId: string, content: string, agentId: string) => {
-    if (!isConnected) return false;
-    
     socketService.sendMessage(chatId, content, agentId);
     return true;
-  }, [isConnected]);
+  }, []);
 
   const sendTyping = useCallback((chatId: string, userId: string, agentId: string, isTyping: boolean) => {
-    if (!isConnected) return;
-    
     socketService.sendTyping(chatId, userId, agentId, isTyping);
     
     if (isTyping && typingTimeoutRef.current) {
@@ -149,29 +145,23 @@ export const useWebSocket = () => {
         socketService.sendTyping(chatId, userId, agentId, false);
       }, 3000);
     }
-  }, [isConnected]);
+  }, []);
 
   const joinChat = useCallback((chatId: string) => {
-    if (isConnected) {
-      socketService.joinChat(chatId);
-      currentChatIdRef.current = chatId;
-    }
-  }, [isConnected]);
+    socketService.joinChat(chatId);
+    currentChatIdRef.current = chatId;
+  }, []);
 
   const leaveChat = useCallback((chatId: string) => {
-    if (isConnected) {
-      socketService.leaveChat(chatId);
-      if (currentChatIdRef.current === chatId) {
-        currentChatIdRef.current = null;
-      }
+    socketService.leaveChat(chatId);
+    if (currentChatIdRef.current === chatId) {
+      currentChatIdRef.current = null;
     }
-  }, [isConnected]);
+  }, []);
 
   const sendReadReceipt = useCallback((chatId: string, messageIds: string[], userId: string) => {
-    if (isConnected) {
-      socketService.sendReadReceipt(chatId, messageIds, userId);
-    }
-  }, [isConnected]);
+    socketService.sendReadReceipt(chatId, messageIds, userId);
+  }, []);
 
   // Initialize WebSocket when user changes
   useEffect(() => {
