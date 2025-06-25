@@ -60,13 +60,12 @@ export interface PongData {
 class WebSocketService {
   private socket: Socket | null = null;
   private pingInterval: NodeJS.Timeout | null = null;
-  private messageQueue: SocketMessage[] = [];
+  private messageQueue: Array<{ chatId: string; content: string; agentId: string; messageId: string }> = [];
   private isConnecting = false;
   private eventListeners: Map<string, Set<(data: SocketMessageData) => void>> = new Map();
 
   constructor() {
     this.setupPingInterval = this.setupPingInterval.bind(this);
-    this.handleMessage = this.handleMessage.bind(this);
     this.handleError = this.handleError.bind(this);
     this.handleClose = this.handleClose.bind(this);
   }
@@ -136,11 +135,7 @@ class WebSocketService {
         ['message', 'pong', 'error', 'typing', 'read_receipt', 'chat_update'].forEach((event) => {
           this.socket!.on(event, (data: SocketMessageData) => {
             console.log(`Received ${event} event:`, data);
-            if (event === 'message') {
-              this.handleMessage({ data: JSON.stringify(data) } as MessageEvent);
-            } else {
-              this.emit(event, data);
-            }
+            this.emit(event, data);
           });
         });
 
@@ -180,37 +175,9 @@ class WebSocketService {
 
     this.pingInterval = setInterval(() => {
       if (this.socket && this.socket.connected) {
-        this.send({
-          type: 'ping',
-          data: { timestamp: Date.now() },
-          timestamp: Date.now()
-        });
+        this.socket.emit('ping', { timestamp: Date.now() });
       }
     }, 30000); // Ping every 30 seconds
-  }
-
-  private handleMessage(event: MessageEvent): void {
-    try {
-      console.log('Received message event:', event.data);
-      const message: SocketMessage = JSON.parse(event.data);
-      console.log('Parsed message:', message);
-      
-      switch (message.type) {
-        case 'pong':
-          // Handle pong response
-          console.log('Received pong');
-          break;
-        case 'error':
-          console.error('Socket.IO error 1:', message.data);
-          this.emit('error', message.data);
-          break;
-        default:
-          console.log(`Emitting ${message.type} event`);
-          this.emit(message.type, message.data);
-      }
-    } catch (error) {
-      console.error('Failed to parse Socket.IO message:', error, 'Raw data:', event.data);
-    }
   }
 
   private handleError(event: Event): void {
@@ -227,15 +194,6 @@ class WebSocketService {
     }
 
     this.emit('disconnect', { message: `Disconnected: ${event.reason}`, code: event.code });
-  }
-
-  send(message: SocketMessage): void {
-    if (this.socket && this.socket.connected) {
-      this.socket.emit('message', message);
-    } else {
-      // Queue message for later if not connected
-      this.messageQueue.push(message);
-    }
   }
 
   private flushMessageQueue(): void {
@@ -277,45 +235,37 @@ class WebSocketService {
 
   // Chat-specific methods
   joinChat(chatId: string): void {
-    this.send({
-      type: 'chat_update',
-      data: { action: 'join', chatId },
-      timestamp: Date.now()
-    });
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('chat_update', { chatId, action: 'join' });
+    }
   }
 
   leaveChat(chatId: string): void {
-    this.send({
-      type: 'chat_update',
-      data: { action: 'leave', chatId },
-      timestamp: Date.now()
-    });
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('chat_update', { chatId, action: 'leave' });
+    }
   }
 
   sendMessage(chatId: string, content: string, agentId: string): void {
     const messageId = `temp-${Date.now()}-${Math.random()}`;
-    this.send({
-      type: 'message',
-      data: { chatId, content, agentId, messageId },
-      timestamp: Date.now(),
-      messageId
-    });
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('message', { chatId, content, agentId, messageId });
+    } else {
+      // Queue message for later if not connected
+      this.messageQueue.push({ chatId, content, agentId, messageId });
+    }
   }
 
   sendTyping(chatId: string, userId: string, agentId: string, isTyping: boolean): void {
-    this.send({
-      type: 'typing',
-      data: { chatId, userId, agentId, isTyping },
-      timestamp: Date.now()
-    });
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('typing', { chatId, userId, agentId, isTyping });
+    }
   }
 
   sendReadReceipt(chatId: string, messageIds: string[], userId: string): void {
-    this.send({
-      type: 'read_receipt',
-      data: { chatId, messageIds, userId },
-      timestamp: Date.now()
-    });
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('read_receipt', { chatId, messageIds, userId });
+    }
   }
 
   // Utility methods
