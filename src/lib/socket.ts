@@ -1,4 +1,3 @@
-import { ChartNoAxesColumnDecreasing } from 'lucide-react';
 import { Message, Chat } from './types';
 import { io, Socket } from 'socket.io-client';
 
@@ -86,6 +85,8 @@ class WebSocketService {
 
       this.isConnecting = true;
       const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
+      
+      console.log('Attempting to connect to WebSocket:', wsUrl);
 
       try {
         this.socket = io(wsUrl, {
@@ -95,7 +96,7 @@ class WebSocketService {
         });
 
         this.socket.on('connect', () => {
-          console.log('Socket.IO connected');
+          console.log('Socket.IO connected successfully');
           this.isConnecting = false;
           this.setupPingInterval();
           this.flushMessageQueue();
@@ -104,26 +105,42 @@ class WebSocketService {
 
         this.socket.on('connect_error', (err: Error) => {
           this.isConnecting = false;
-          console.error('Socket.IO connection error:', err);
+          console.error('Socket.IO connection error:', {
+            message: err.message,
+            name: err.name,
+            stack: err.stack,
+            url: wsUrl
+          });
           reject(err);
         });
 
         this.socket.on('disconnect', (reason: string) => {
+          console.log('Socket.IO disconnected:', reason);
           this.handleClose({ code: 1000, reason } as CloseEvent);
         });
 
-        this.socket.on('message', (message: SocketMessage) => {
-          this.handleMessage({ data: JSON.stringify(message) } as MessageEvent);
+        this.socket.on('reconnect', (attemptNumber: number) => {
+          console.log('Socket.IO reconnected after', attemptNumber, 'attempts');
+        });
+
+        this.socket.on('reconnect_error', (error: Error) => {
+          console.error('Socket.IO reconnection error:', error);
         });
 
         this.socket.on('error', (data: unknown) => {
+          console.error('Socket.IO error event:', data);
           this.handleError({} as Event);
         });
 
         // Listen for all custom events
-        ['pong', 'error', 'typing', 'read_receipt', 'chat_update'].forEach((event) => {
+        ['message', 'pong', 'error', 'typing', 'read_receipt', 'chat_update'].forEach((event) => {
           this.socket!.on(event, (data: SocketMessageData) => {
-            this.emit(event, data);
+            console.log(`Received ${event} event:`, data);
+            if (event === 'message') {
+              this.handleMessage({ data: JSON.stringify(data) } as MessageEvent);
+            } else {
+              this.emit(event, data);
+            }
           });
         });
 
@@ -174,20 +191,25 @@ class WebSocketService {
 
   private handleMessage(event: MessageEvent): void {
     try {
+      console.log('Received message event:', event.data);
       const message: SocketMessage = JSON.parse(event.data);
+      console.log('Parsed message:', message);
+      
       switch (message.type) {
         case 'pong':
           // Handle pong response
+          console.log('Received pong');
           break;
         case 'error':
           console.error('Socket.IO error 1:', message.data);
           this.emit('error', message.data);
           break;
         default:
+          console.log(`Emitting ${message.type} event`);
           this.emit(message.type, message.data);
       }
     } catch (error) {
-      console.error('Failed to parse Socket.IO message:', error);
+      console.error('Failed to parse Socket.IO message:', error, 'Raw data:', event.data);
     }
   }
 
